@@ -55,28 +55,37 @@
   /* ---------- sesión ---------- */
   CV.acts.login = () => CV.loginModal();
   CV.acts.authTab = (t) => CV.loginModal('', t.dataset.t);
+  const online = () => !!(CV.api && CV.api.online);
   CV.acts.demo = (t) => {
     const u = CV.login(t.dataset.c, '1234');
     if (u) { CV.closeModal(); CV.toast(`Sesión iniciada como ${u.nombre}`); CV.render(true); }
   };
-  CV.acts.logout = () => {
-    CV.logout(); closeMenus(); CV.toast('Cerraste sesión');
+  CV.acts.logout = async () => {
+    if (online()) await CV.api.logout(); else CV.logout();
+    closeMenus(); CV.toast('Cerraste sesión');
     if (['organizador', 'admin', 'favoritos', 'notificaciones'].includes(CV.route.parts[0])) CV.go('/'); else CV.render(true);
   };
-  CV.submits.login = (form) => {
-    const fd = new FormData(form);
-    const u = CV.login(fd.get('correo'), fd.get('clave'));
-    if (!u) { document.getElementById('auth-err').textContent = 'El correo o la contraseña no coinciden. Revísalos e inténtalo de nuevo.'; return; }
+  const ocupado = (form, on) => { const b = form.querySelector('button[type="submit"]'); if (b) { b.disabled = on; b.dataset.t = b.dataset.t || b.textContent; b.textContent = on ? 'Un momento…' : b.dataset.t; } };
+  CV.submits.login = async (form) => {
+    const fd = new FormData(form); const err = document.getElementById('auth-err');
+    ocupado(form, true);
+    const r = online() ? await CV.api.login(fd.get('correo'), fd.get('clave')) : { user: CV.login(fd.get('correo'), fd.get('clave')) };
+    ocupado(form, false);
+    const u = r.user;
+    if (!u) { err.textContent = r.error || 'El correo o la contraseña no coinciden. Revísalos e inténtalo de nuevo.'; return; }
     CV.closeModal(); CV.toast(`Hola, ${u.nombre.split(' ')[0]}`); CV.render(true);
   };
-  CV.submits.register = (form) => {
+  CV.submits.register = async (form) => {
     const fd = new FormData(form); const err = document.getElementById('auth-err');
     const nombre = String(fd.get('nombre') || '').trim(), correo = String(fd.get('correo') || '').trim(), clave = String(fd.get('clave') || '');
     if (!nombre) { err.textContent = 'Escribe tu nombre.'; return; }
     if (!/^\S+@\S+\.\S+$/.test(correo)) { err.textContent = 'Escribe un correo válido.'; return; }
-    if (clave.length < 4) { err.textContent = 'La contraseña debe tener al menos 4 caracteres.'; return; }
-    const r = CV.registrar({ nombre, correo, clave, rol: fd.get('rol') });
+    if (clave.length < (online() ? 6 : 4)) { err.textContent = `La contraseña debe tener al menos ${online() ? 6 : 4} caracteres.`; return; }
+    ocupado(form, true);
+    const r = online() ? await CV.api.registrar({ nombre, correo, clave, rol: fd.get('rol') }) : CV.registrar({ nombre, correo, clave, rol: fd.get('rol') });
+    ocupado(form, false);
     if (r.error) { err.textContent = r.error; return; }
+    if (r.pendiente) { CV.closeModal(); CV.toast('Cuenta creada. Revisa tu correo para confirmarla y luego inicia sesión.'); return; }
     CV.closeModal(); CV.toast('Cuenta creada. ¡Bienvenido!'); CV.render(true);
   };
   const pedirLogin = (msg) => { CV.loginModal(msg); };
@@ -216,8 +225,16 @@
   });
 
   /* ---------- arranque ---------- */
-  CV.renderFooter();
-  CV.render(false);
-  CV.runReminders();
-  setInterval(CV.runReminders, 60000);
+  const arrancar = () => {
+    CV.renderFooter();
+    CV.render(false);
+    CV.runReminders();
+    setInterval(CV.runReminders, 60000);
+  };
+  const cargando = document.getElementById('app');
+  if (cargando) cargando.innerHTML = '<p class="loading" style="padding:60px 20px;text-align:center">Cargando CulturaViva…</p>';
+  (CV.api && CV.api.ready ? CV.api.ready : Promise.resolve()).then(() => {
+    arrancar();
+    if (CV.api && CV.api.error) CV.toast('No hay conexión con la base de datos. Estás en modo demostración.', 'warn');
+  });
 })();

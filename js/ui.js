@@ -206,10 +206,10 @@
         <label>Contraseña<input name="clave" type="password" autocomplete="current-password" required></label>
         <p class="err" id="auth-err" role="alert"></p>
         <button class="btn" type="submit">Iniciar sesión</button>
-        <div class="demo"><small>Cuentas de prueba (clave 1234)</small>
+        ${CV.api && CV.api.online ? '' : `<div class="demo"><small>Cuentas de prueba (clave 1234)</small>
           <div><button type="button" class="chip" data-act="demo" data-c="usuario@culturaviva.co">Usuario</button>
           <button type="button" class="chip" data-act="demo" data-c="organizador@culturaviva.co">Organizador</button>
-          <button type="button" class="chip" data-act="demo" data-c="admin@culturaviva.co">Administrador</button></div></div>
+          <button type="button" class="chip" data-act="demo" data-c="admin@culturaviva.co">Administrador</button></div></div>`}
       </form>` : `<form data-submit="register" class="form" novalidate>
         <label>Nombre<input name="nombre" autocomplete="name" required></label>
         <label>Correo<input name="correo" type="email" autocomplete="email" required></label>
