@@ -356,6 +356,6 @@
   CV.views.nosotros = () => `<div class="wrap page narrow"><div class="page-h"><div><h1>Nosotros</h1><p class="lead">CulturaViva reúne la agenda cultural de la ciudad en un solo lugar.</p></div></div>
     <section class="card pad-l"><h2>Qué hacemos</h2><p class="desc">Ayudamos a que el público encuentre conciertos, exposiciones, obras de teatro, cine, talleres y festivales cerca de donde vive, y a que organizadores y espacios culturales den a conocer su programación.</p>
       <p class="desc">Puedes buscar sin crear una cuenta. Con una cuenta guardas favoritos, activas recordatorios y recibes avisos si un evento cambia.</p></section>
-    <section class="card pad-l"><h2>Contacto</h2><ul class="info"><li>${icon('mail', 18)}<span><small>Correo</small><b>hola@culturaviva.example</b></span></li><li>${icon('phone', 18)}<span><small>Teléfono</small><b>+57 601 555 0100</b></span></li></ul></section>
+    <section class="card pad-l"><h2>Contacto</h2><ul class="info"><li>${icon('mail', 18)}<span><small>Correo</small><b>culturaviva@gmail.com</b></span></li><li>${icon('phone', 18)}<span><small>Teléfono</small><b>+57 300 3815035</b></span></li></ul></section>
     ${CV.api && CV.api.online ? '' : `<section class="card pad-l"><h2>Versión de demostración</h2><p class="desc">Esta versión guarda los datos en tu navegador y usa información de ejemplo. Puedes volver al estado inicial cuando quieras.</p><button class="btn ghost sm" data-act="resetDemo">Restablecer datos de ejemplo</button></section>`}</div>`;
 })();
