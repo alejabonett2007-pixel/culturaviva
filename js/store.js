@@ -41,6 +41,17 @@
   CV.evento = (id) => CV.db.eventos.find((e) => e.id === id);
   CV.usuario = (id) => CV.db.usuarios.find((u) => u.id === id);
 
+  // Mantiene la localidad (zona) de cada evento igual a la de su lugar y valida la zona elegida.
+  CV.normalizar = () => {
+    const db = CV.db;
+    if (!db.zona || (db.zona !== 'todas' && !CV.zonas[db.zona])) db.zona = 'todas';
+    db.lugares.forEach((l) => { if (!l.zona) l.zona = CV.zonaDe(l.barrio); });
+    db.eventos.forEach((e) => { const l = CV.lugar(e.lugarId); e.zona = l ? l.zona : ''; });
+  };
+  CV.normalizar();
+  CV.zonaNombre = () => (CV.db.zona === 'todas' ? 'Bogotá' : CV.db.zona);
+  CV.centroZona = () => CV.zonas[CV.db.zona] || CV.ciudades['Bogotá'];
+
   /* ---------- estado temporal de un evento ---------- */
   CV.endOf = (e) => {
     if (e.funciones && e.funciones.length) {
@@ -106,7 +117,7 @@
   CV.buscar = (f = {}) => {
     const q = CV.norm(f.q);
     let list = CV.db.eventos.filter((e) => (f.todos ? true : CV.vigente(e)));
-    if (f.ciudad && f.ciudad !== 'todas') list = list.filter((e) => e.ciudad === f.ciudad);
+    if (f.zona && f.zona !== 'todas') list = list.filter((e) => e.zona === f.zona);
     if (f.cats && f.cats.length) list = list.filter((e) => f.cats.includes(e.categoria));
     if (f.desde || f.hasta) {
       const a = f.desde || f.hasta;
@@ -222,7 +233,7 @@
     const fin = d.fechaFin ? `${d.fechaFin}T${d.horaFin || '23:59'}` : d.horaFin ? `${d.fecha}T${d.horaFin}` : '';
     const campos = {
       titulo: d.titulo.trim(), descripcion: d.descripcion.trim(), categoria: d.categoria, inicio, fin,
-      lugarId: d.lugarId, ciudad: lugar.ciudad, capacidad: d.capacidad, precio: d.precio || 0,
+      lugarId: d.lugarId, ciudad: lugar.ciudad, zona: lugar.zona, capacidad: d.capacidad, precio: d.precio || 0,
       invitado: d.invitado.trim(), tema: d.tema.trim(), duracion: d.duracion.trim(), publico: d.publico.trim(),
       imagen: d.imagen || '',
     };

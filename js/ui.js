@@ -97,7 +97,7 @@
   CV.cal = CV.cal || { mes: new Date(new Date().getFullYear(), new Date().getMonth(), 1), sel: null, cats: [] };
   CV.calendarioHTML = (opts = {}) => {
     const { mes } = CV.cal;
-    const eventos = CV.buscar({ ciudad: CV.db.ciudad, cats: CV.cal.cats });
+    const eventos = CV.buscar({ zona: CV.db.zona, cats: CV.cal.cats });
     const first = new Date(mes.getFullYear(), mes.getMonth(), 1);
     const start = new Date(first); start.setDate(1 - ((first.getDay() + 6) % 7));
     const hoy = CV.todayKey();
@@ -121,7 +121,9 @@
   /* ---------- mapa (HU-13, HU-14) ---------- */
   CV.maps = [];
   CV.destroyMaps = () => { CV.maps.forEach((m) => { try { m.remove(); } catch (e) { /* ya no existe */ } }); CV.maps = []; };
-  CV.centroCiudad = () => CV.ciudades[CV.db.ciudad] || CV.ciudades['Bogotá'];
+  CV.zonaOpts = (sel) => `<option value="todas" ${sel === 'todas' ? 'selected' : ''}>Toda Bogotá</option>` +
+    Object.keys(CV.zonas).map((z) => `<option value="${z}" ${z === sel ? 'selected' : ''}>${z}</option>`).join('');
+  CV.centroCiudad = () => CV.centroZona();
 
   CV.pinIcon = (color) =>
     window.L.divIcon({ className: 'pin', html: `<span style="background:${color}"></span>`, iconSize: [26, 26], iconAnchor: [13, 26], popupAnchor: [0, -24] });
@@ -148,7 +150,7 @@
     if (o.center) map.setView(o.center, o.zoom || 14);
     else if (pts.length > 1) map.fitBounds(pts, { padding: [30, 30], maxZoom: 15 });
     else if (pts.length === 1) map.setView(pts[0], 15);
-    else map.setView(CV.centroCiudad(), 12);
+    else map.setView(CV.centroCiudad(), CV.db.zona === 'todas' ? 12 : 14);
     CV.maps.push(map);
     setTimeout(() => map.invalidateSize(), 120);
     return map;
@@ -160,7 +162,7 @@
         sub: `${CV.fmtShort(e.inicio)}, ${CV.fmtTime(e.inicio)}`, href: `#/evento/${e.id}` } : null; }).filter(Boolean);
 
   CV.ubicar = (map, onDone) => {
-    if (!navigator.geolocation) { CV.toast('Tu navegador no permite obtener la ubicación. Mostramos la ciudad elegida.', 'warn'); return; }
+    if (!navigator.geolocation) { CV.toast('Tu navegador no permite obtener la ubicación. Mostramos la zona elegida.', 'warn'); return; }
     navigator.geolocation.getCurrentPosition(
       (p) => {
         if (map) {
@@ -169,7 +171,7 @@
         }
         if (onDone) onDone(p);
       },
-      () => CV.toast(`No pudimos obtener tu ubicación. Mostramos los eventos de ${CV.db.ciudad}.`, 'warn'),
+      () => CV.toast(`No pudimos obtener tu ubicación. Mostramos los eventos de ${CV.zonaNombre()}.`, 'warn'),
       { timeout: 8000 }
     );
   };
@@ -227,7 +229,7 @@
     const seg = (CV.route && CV.route.parts[0]) || '';
     const nav = (href, key, label, ic) =>
       `<a href="${href}" class="${seg === key || (key === '' && seg === '') ? 'on' : ''}" ${seg === key ? 'aria-current="page"' : ''}>${icon(ic, 16)}<span>${label}</span></a>`;
-    const ciudades = Object.keys(CV.ciudades).map((c) => `<option ${c === CV.db.ciudad ? 'selected' : ''}>${c}</option>`).join('');
+    const ciudades = CV.zonaOpts(CV.db.zona);
     const nots = CV.misNotifs();
     const sin = CV.sinLeer();
     let right;
@@ -251,7 +253,7 @@
       <a class="brand" href="#/" aria-label="CulturaViva, inicio">${CV.logo()}<span><b>CulturaViva</b><small>Arte · Cultura · Comunidad</small></span></a>
       <nav class="nav" aria-label="Principal">${nav('#/', '', 'Inicio', 'home')}${nav('#/eventos', 'eventos', 'Eventos', 'calendar')}${nav('#/lugares', 'lugares', 'Lugares', 'pin')}${nav('#/nosotros', 'nosotros', 'Nosotros', 'info')}</nav>
       <div class="hdr-r">
-        <label class="city">${icon('pin', 15)}<span class="sr">Ciudad</span><select data-change="city" aria-label="Ciudad">${ciudades}</select></label>
+        <label class="city">${icon('pin', 15)}<span class="sr">Ubicación en Bogotá</span><select data-change="city" aria-label="Ubicación en Bogotá">${ciudades}</select></label>
         <a class="ib" href="#/eventos" data-act="focusSearch" aria-label="Buscar eventos">${icon('search', 18)}</a>
         ${right}</div></div>`;
   };

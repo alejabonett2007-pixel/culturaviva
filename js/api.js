@@ -11,7 +11,7 @@
   if (!lib || !cfg.url || !cfg.key) { api.ready = Promise.resolve(); return; }
 
   const sb = (api.sb = lib.createClient(cfg.url, cfg.key, { auth: { persistSession: true, autoRefreshToken: true } }));
-  const LS_SENT = 'culturaviva.sent', LS_CIUDAD = 'culturaviva.ciudad';
+  const LS_SENT = 'culturaviva.sent', LS_ZONA = 'culturaviva.zona';
   const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
   const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* sin almacenamiento */ } };
   const must = (r) => { if (r.error) throw r.error; return r.data; };
@@ -36,7 +36,7 @@
     if (nuevo) { r.id = e.id; r.organizador_id = e.organizadorId || null; }
     return r; // 'inscritos' lo calcula la base al reservar
   };
-  const LUGAR = ['nombre', 'tipo', 'ciudad', 'barrio', 'direccion', 'telefono', 'horario', 'descripcion', 'lat', 'lng', 'web', 'email'];
+  const LUGAR = ['nombre', 'tipo', 'ciudad', 'barrio', 'zona', 'direccion', 'telefono', 'horario', 'descripcion', 'lat', 'lng', 'web', 'email'];
   const fromLugar = (r) => { const o = { id: r.id }; LUGAR.forEach((k) => (o[k] = r[k] == null ? '' : r[k])); return o; };
   const toLugar = (l) => {
     const r = { id: l.id };
@@ -100,8 +100,9 @@
     CV.db = {
       v: 1, categorias: must(cat), lugares: must(lug).map(fromLugar), eventos: must(eve).map(fromEvento),
       usuarios: must(per).map((p) => ({ id: p.id, nombre: p.nombre, rol: p.rol, correo: '', clave: '', prefs: {} })),
-      favs: {}, recs: {}, inscr: {}, notifs: [], sent, sesion: null, ciudad: lsGet(LS_CIUDAD) || 'Bogotá',
+      favs: {}, recs: {}, inscr: {}, notifs: [], sent, sesion: null, zona: lsGet(LS_ZONA) || 'todas',
     };
+    CV.normalizar();
     const { data } = await sb.auth.getSession();
     await cargarPersonal(data.session ? data.session.user : null);
     tomarSnap();
@@ -187,7 +188,7 @@
   let pendiente = false;
   CV.save = () => {
     lsSet(LS_SENT, j(CV.db.sent || {}));
-    lsSet(LS_CIUDAD, CV.db.ciudad || 'Bogotá');
+    lsSet(LS_ZONA, CV.db.zona || 'todas');
     if (!api.online || pendiente) return;
     pendiente = true;
     setTimeout(() => {

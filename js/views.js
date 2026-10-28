@@ -10,20 +10,18 @@
   CV.resetF = () => (CV.f = defaultF());
   const PAGE = 9;
 
-  const ciudadOpts = (sel, todas) =>
-    (todas ? `<option value="todas" ${sel === 'todas' ? 'selected' : ''}>Todas las ciudades</option>` : '') +
-    Object.keys(CV.ciudades).map((c) => `<option ${c === sel ? 'selected' : ''}>${c}</option>`).join('');
+  const ciudadOpts = (sel) => CV.zonaOpts(sel);
 
   const chips = (selected, ciudad) =>
     CV.db.categorias.map((c) => {
-      const n = CV.buscar({ ciudad, cats: [c.id] }).length;
+      const n = CV.buscar({ zona: ciudad, cats: [c.id] }).length;
       const on = selected.includes(c.id);
       return `<button type="button" class="chip cat ${on ? 'on' : ''}" style="--c:${c.color}" data-act="cat" data-id="${c.id}" aria-pressed="${on}">${icon(c.icono, 14)}${esc(c.nombre)}<em>${n}</em></button>`;
     }).join('');
 
   const otrasCiudades = () =>
-    Object.keys(CV.ciudades).filter((c) => c !== CV.db.ciudad && CV.buscar({ ciudad: c }).length)
-      .map((c) => `<button class="chip" data-act="setCity" data-c="${c}">${icon('pin', 13)}${c} <em>${CV.buscar({ ciudad: c }).length}</em></button>`).join('');
+    ['todas', ...Object.keys(CV.zonas)].filter((c) => c !== CV.db.zona && (c === 'todas' || CV.buscar({ zona: c }).length))
+      .map((c) => `<button class="chip" data-act="setCity" data-c="${c}">${icon('pin', 13)}${c === 'todas' ? 'Toda Bogotá' : c}${c === 'todas' ? '' : ` <em>${CV.buscar({ zona: c }).length}</em>`}</button>`).join('');
 
   /* ======================= INICIO ======================= */
   CV.crowd = () => {
@@ -38,9 +36,9 @@
   };
 
   CV.views[''] = () => {
-    const ciudad = CV.db.ciudad;
+    const ciudad = CV.db.zona;
     const u = CV.user();
-    const futuros = CV.buscar({ ciudad });
+    const futuros = CV.buscar({ zona: ciudad });
     let dest = futuros.filter((e) => e.destacado);
     const sinDest = dest.length === 0;
     dest = (sinDest ? futuros : dest).slice(0, 4);
@@ -64,7 +62,7 @@
         <form class="hsearch" data-submit="heroSearch" role="search">
           <label class="sr" for="hq">Buscar eventos, artistas o lugares</label>
           <span class="hs-in">${icon('search', 18)}<input id="hq" name="q" type="search" placeholder="Buscar eventos, artistas, lugares..." autocomplete="off"></span>
-          <label class="hs-city">${icon('pin', 15)}<span class="sr">Ciudad</span><select name="ciudad" data-change="city">${ciudadOpts(ciudad)}</select></label>
+          <label class="hs-city">${icon('pin', 15)}<span class="sr">Ubicación en Bogotá</span><select name="zona" data-change="city">${ciudadOpts(ciudad)}</select></label>
           <button class="btn" type="submit">Buscar</button>
         </form>
         <p class="hero-sig" aria-hidden="true">La cultura<br>nos une</p>
@@ -80,7 +78,7 @@
 
         <section aria-labelledby="h-dest">
           <div class="sec-h"><h2 id="h-dest">${icon('star', 18)}${sinDest ? 'Próximos eventos' : 'Eventos destacados'}</h2><a class="more" href="#/eventos">Ver todos ${icon('arrow', 14)}</a></div>
-          ${dest.length ? `<div class="grid4">${dest.map((e) => CV.eventCard(e)).join('')}</div>` : CV.vacio(`Aún no hay eventos en ${ciudad}`, 'Prueba con otra ciudad.', `<div class="chips">${otrasCiudades()}</div>`)}
+          ${dest.length ? `<div class="grid4">${dest.map((e) => CV.eventCard(e)).join('')}</div>` : CV.vacio(`Aún no hay eventos en ${CV.zonaNombre()}`, 'Prueba con otra ubicación.', `<div class="chips">${otrasCiudades()}</div>`)}
         </section>
 
         <div class="two">
@@ -119,27 +117,27 @@
   /* ======================= EVENTOS (listado + filtros) ======================= */
   CV.pintarChips = () => {
     const el = document.getElementById('chips');
-    if (el) el.innerHTML = chips(CV.f.cats, CV.db.ciudad);
+    if (el) el.innerHTML = chips(CV.f.cats, CV.db.zona);
   };
 
   CV.pintarResultados = (append) => {
     const box = document.getElementById('resultados');
     if (!box) return;
     const f = CV.f;
-    const list = CV.buscar({ q: f.q, cats: f.cats, desde: f.desde, hasta: f.hasta, ciudad: CV.db.ciudad, orden: f.orden });
+    const list = CV.buscar({ q: f.q, cats: f.cats, desde: f.desde, hasta: f.hasta, zona: CV.db.zona, orden: f.orden });
     const shown = list.slice(0, f.page * PAGE);
     const catsSel = f.cats.map((id) => (CV.cat(id) || {}).nombre).filter(Boolean);
     const hayFiltros = f.q || f.cats.length || f.desde || f.hasta;
     let html;
     if (!list.length) {
-      const ciudadVacia = CV.buscar({ ciudad: CV.db.ciudad }).length === 0;
+      const ciudadVacia = CV.buscar({ zona: CV.db.zona }).length === 0;
       html = CV.vacio(
-        ciudadVacia ? `Todavía no hay eventos en ${CV.db.ciudad}` : 'No se encontraron eventos',
-        ciudadVacia ? 'Prueba con alguna de estas ciudades:' : 'Cambia las palabras de la búsqueda, quita algún filtro o prueba con otra fecha.',
+        ciudadVacia ? `Todavía no hay eventos en ${CV.zonaNombre()}` : 'No se encontraron eventos',
+        ciudadVacia ? 'Prueba con alguna de estas ubicaciones:' : 'Cambia las palabras de la búsqueda, quita algún filtro o prueba con otra fecha.',
         `${!ciudadVacia && hayFiltros ? '<button class="btn sm" data-act="clear">Limpiar filtros</button>' : ''}<div class="chips">${otrasCiudades()}</div>`
       );
     } else {
-      html = `<p class="count-l" aria-live="polite"><b>${list.length}</b> ${list.length === 1 ? 'evento' : 'eventos'} en ${esc(CV.db.ciudad)}${catsSel.length ? ' · ' + esc(catsSel.join(', ')) : ''}</p>
+      html = `<p class="count-l" aria-live="polite"><b>${list.length}</b> ${list.length === 1 ? 'evento' : 'eventos'} en ${esc(CV.zonaNombre())}${catsSel.length ? ' · ' + esc(catsSel.join(', ')) : ''}</p>
         <div class="grid3">${shown.map((e) => CV.eventCard(e, { extra: true })).join('')}</div>
         ${shown.length < list.length ? `<div class="center"><button class="btn ghost" data-act="more">Cargar más eventos (${list.length - shown.length})</button></div>` : ''}`;
     }
@@ -157,12 +155,12 @@
       <div class="page-h"><div><h1>${solo ? esc(solo.nombre) : 'Eventos culturales'}</h1><p class="lead">Busca por nombre, artista o lugar y filtra por categoría y fecha.</p></div></div>
       <form class="card filters" data-submit="noop" role="search">
         <label class="f-q">${icon('search', 18)}<span class="sr">Buscar</span><input id="f-q" type="search" value="${esc(CV.f.q)}" placeholder="Buscar eventos, artistas, lugares..." data-input="q" autocomplete="off"></label>
-        <label class="f">Ciudad<select data-change="city">${ciudadOpts(CV.db.ciudad)}</select></label>
+        <label class="f">Ubicación<select data-change="city">${ciudadOpts(CV.db.zona)}</select></label>
         <label class="f">Desde<input type="date" id="f-desde" min="${hoy}" value="${CV.f.desde}" data-change="desde"></label>
         <label class="f">Hasta<input type="date" id="f-hasta" min="${CV.f.desde || hoy}" value="${CV.f.hasta}" data-change="hasta"></label>
         <label class="f">Ordenar<select data-change="orden"><option value="asc" ${CV.f.orden === 'asc' ? 'selected' : ''}>Fecha: más cercana primero</option><option value="desc" ${CV.f.orden === 'desc' ? 'selected' : ''}>Fecha: más lejana primero</option></select></label>
         <button type="button" class="btn ghost sm" data-act="clear">Limpiar filtros</button>
-        <div class="chips full" id="chips" role="group" aria-label="Categorías">${chips(CV.f.cats, CV.db.ciudad)}</div>
+        <div class="chips full" id="chips" role="group" aria-label="Categorías">${chips(CV.f.cats, CV.db.zona)}</div>
       </form>
       <div id="resultados"></div></div>`;
   };
@@ -232,11 +230,11 @@
     if (!box) return;
     const k = CV.cal.sel;
     if (!k) { box.innerHTML = CV.vacio('Elige un día', 'Toca una fecha del calendario para ver sus eventos.'); return; }
-    const list = CV.buscar({ ciudad: CV.db.ciudad, cats: CV.cal.cats, desde: k, hasta: k });
+    const list = CV.buscar({ zona: CV.db.zona, cats: CV.cal.cats, desde: k, hasta: k });
     box.innerHTML = `<h2 class="cal-d">${CV.fmtLong(k + 'T00:00')}</h2>` + (list.length
       ? `<ul class="dayl">${list.map((e) => { const l = CV.lugar(e.lugarId); const h = (e.funciones || []).find((f) => CV.keyOf(f) === k) || e.inicio;
         return `<li><a href="#/evento/${e.id}"><b class="hr">${CV.fmtTime(h)}</b><span><b>${esc(e.titulo)}</b><small>${esc(l ? l.nombre : '')}</small></span>${CV.tag(e)}${icon('right', 15)}</a></li>`; }).join('')}</ul>`
-      : CV.vacio('No hay eventos este día', `No encontramos eventos en ${CV.db.ciudad} para esta fecha. Prueba con otro día o quita categorías.`));
+      : CV.vacio('No hay eventos este día', `No encontramos eventos en ${CV.zonaNombre()} para esta fecha. Prueba con otro día o quita categorías.`));
   };
 
   CV.views.calendario = (parts, q) => {
@@ -244,47 +242,47 @@
     else if (!CV.cal.sel) CV.cal.sel = CV.todayKey();
     CV.after.push(() => CV.pintarDia());
     return `<div class="wrap page">
-      <div class="page-h"><div><h1>Calendario de eventos</h1><p class="lead">Los días con un punto tienen eventos en ${esc(CV.db.ciudad)}.</p></div></div>
+      <div class="page-h"><div><h1>Calendario de eventos</h1><p class="lead">Los días con un punto tienen eventos en ${esc(CV.zonaNombre())}.</p></div></div>
       <div class="chips" role="group" aria-label="Categorías" id="cal-chips">${CV.db.categorias.map((c) => `<button type="button" class="chip cat ${CV.cal.cats.includes(c.id) ? 'on' : ''}" style="--c:${c.color}" data-act="calCat" data-id="${c.id}" aria-pressed="${CV.cal.cats.includes(c.id)}">${icon(c.icono, 14)}${esc(c.nombre)}</button>`).join('')}</div>
       <div class="calpage"><section class="card pad-l" id="cal-big">${CV.calendarioHTML({ big: true })}</section><section class="card pad-l" id="cal-day"></section></div></div>`;
   };
 
   /* ======================= LUGARES ======================= */
-  CV.lf = { tipo: 'todos', ciudad: null, vista: 'lista' };
+  CV.lf = { tipo: 'todos', zona: null, vista: 'lista' };
   CV.pintarLugares = () => {
     const box = document.getElementById('lugares-res');
     if (!box) return;
     CV.destroyMaps();
-    const ciudad = CV.lf.ciudad || CV.db.ciudad;
-    const list = CV.db.lugares.filter((l) => (ciudad === 'todas' || l.ciudad === ciudad) && (CV.lf.tipo === 'todos' || l.tipo === CV.lf.tipo));
-    if (!list.length) { box.innerHTML = CV.vacio('No hay lugares con esos filtros', 'Prueba con otro tipo de lugar u otra ciudad.'); return; }
+    const ciudad = CV.lf.zona || CV.db.zona;
+    const list = CV.db.lugares.filter((l) => (ciudad === 'todas' || l.zona === ciudad) && (CV.lf.tipo === 'todos' || l.tipo === CV.lf.tipo));
+    if (!list.length) { box.innerHTML = CV.vacio('No hay lugares con esos filtros', 'Prueba con otro tipo de lugar u otra ubicación.'); return; }
     if (CV.lf.vista === 'mapa') {
       box.innerHTML = '<div id="map-l" class="map tall" aria-label="Mapa de lugares culturales"></div>';
-      CV.dibujarMapa(document.getElementById('map-l'), list.map((l) => ({ id: l.id, lat: l.lat, lng: l.lng, color: '#2f6bff', titulo: l.nombre, sub: `${l.tipo} · ${l.ciudad}`, href: `#/lugar/${l.id}` })), { scroll: true });
+      CV.dibujarMapa(document.getElementById('map-l'), list.map((l) => ({ id: l.id, lat: l.lat, lng: l.lng, color: '#2f6bff', titulo: l.nombre, sub: `${l.tipo} · ${l.zona || l.ciudad}`, href: `#/lugar/${l.id}` })), { scroll: true });
       return;
     }
     box.innerHTML = `<p class="count-l"><b>${list.length}</b> ${list.length === 1 ? 'lugar' : 'lugares'}</p><div class="grid3">${list.map((l) => `<article class="ecard"><a class="ecard-img" href="#/lugar/${l.id}" tabindex="-1" aria-hidden="true">${CV.placeArt(l)}<span class="tag" style="--c:#2f6bff">${esc(l.tipo)}</span></a>
       <div class="ecard-b"><h3><a href="#/lugar/${l.id}">${esc(l.nombre)}</a></h3><p class="meta">${icon('pin', 13)}<span>${esc(l.ciudad)}${l.barrio ? ' · ' + esc(l.barrio) : ''}</span></p>
-      <p class="meta sub">${(() => { const n = CV.buscar({ ciudad: 'todas' }).filter((e) => e.lugarId === l.id).length; return n === 0 ? 'Sin eventos próximos' : n === 1 ? '1 evento próximo' : n + ' eventos próximos'; })()}</p>
+      <p class="meta sub">${(() => { const n = CV.buscar({ zona: 'todas' }).filter((e) => e.lugarId === l.id).length; return n === 0 ? 'Sin eventos próximos' : n === 1 ? '1 evento próximo' : n + ' eventos próximos'; })()}</p>
       <div class="ecard-f"><a class="btn-soft" href="#/lugar/${l.id}">Ver lugar</a></div></div></article>`).join('')}</div>`;
   };
 
   CV.views.lugares = () => {
-    CV.lf = { tipo: 'todos', ciudad: CV.db.ciudad, vista: 'lista' };
+    CV.lf = { tipo: 'todos', zona: CV.db.zona, vista: 'lista' };
     CV.after.push(() => CV.pintarLugares());
     return `<div class="wrap page">
       <div class="page-h"><div><h1>Lugares culturales</h1><p class="lead">Museos, teatros, centros culturales y más espacios para visitar.</p></div>
         <div class="seg" role="group" aria-label="Vista"><button class="on" data-act="vista" data-v="lista">${icon('list', 15)}Lista</button><button data-act="vista" data-v="mapa">${icon('map', 15)}Mapa</button></div></div>
       <div class="card filters">
         <label class="f">Tipo de lugar<select data-change="ltipo"><option value="todos">Todos los tipos</option>${CV.tiposLugar.map((t) => `<option>${t}</option>`).join('')}</select></label>
-        <label class="f">Ciudad<select data-change="lciudad">${ciudadOpts(CV.db.ciudad, true)}</select></label></div>
+        <label class="f">Ubicación<select data-change="lciudad">${ciudadOpts(CV.db.zona)}</select></label></div>
       <div id="lugares-res"></div></div>`;
   };
 
   CV.views.lugar = (parts) => {
     const l = CV.lugar(parts[1]);
     if (!l) return `<div class="wrap page">${CV.vacio('No encontramos este lugar', '', '<a class="btn sm" href="#/lugares">Ver lugares</a>')}</div>`;
-    const evs = CV.buscar({ ciudad: 'todas' }).filter((e) => e.lugarId === l.id);
+    const evs = CV.buscar({ zona: 'todas' }).filter((e) => e.lugarId === l.id);
     CV.after.push(() => CV.dibujarMapa(document.getElementById('map-p'), [{ id: l.id, lat: l.lat, lng: l.lng, color: '#2f6bff', titulo: l.nombre, sub: l.tipo, href: `#/lugar/${l.id}` }], { center: [l.lat, l.lng], zoom: 15 }));
     const dir = l.direccion ? `${esc(l.direccion)}, ${esc(l.barrio)}, ${esc(l.ciudad)}` : '';
     return `<div class="dhero small">${CV.placeArt(l, 'big')}<div class="dhero-s"></div><div class="wrap dhero-in"><a class="back" href="#/lugares">${icon('left', 16)} Lugares</a>
@@ -306,9 +304,9 @@
   CV.mf = { cats: [], desde: '', hasta: '' };
   CV.pintarMapa = (focusId) => {
     CV.destroyMaps();
-    const list = CV.buscar({ ciudad: CV.db.ciudad, cats: CV.mf.cats, desde: CV.mf.desde, hasta: CV.mf.hasta });
+    const list = CV.buscar({ zona: CV.db.zona, cats: CV.mf.cats, desde: CV.mf.desde, hasta: CV.mf.hasta });
     const side = document.getElementById('map-list');
-    if (side) side.innerHTML = list.length ? list.map((e) => CV.eventRow(e)).join('') : CV.vacio('Sin eventos en el mapa', 'Cambia la ciudad, las categorías o la fecha.');
+    if (side) side.innerHTML = list.length ? list.map((e) => CV.eventRow(e)).join('') : CV.vacio('Sin eventos en el mapa', 'Cambia la ubicación, las categorías o la fecha.');
     const fe = focusId && CV.evento(focusId); const fl = fe && CV.lugar(fe.lugarId);
     const m = CV.dibujarMapa(document.getElementById('map-main'), CV.itemsMapaEventos(list), fl ? { center: [fl.lat, fl.lng], zoom: 16, scroll: true } : { scroll: true });
     CV.mapaActual = m;
@@ -319,16 +317,16 @@
       CV.pintarMapa(q.evento);
       if (!q.evento && navigator.permissions) navigator.permissions.query({ name: 'geolocation' }).then((p) => { if (p.state === 'granted') CV.ubicar(CV.mapaActual); }).catch(() => {});
     });
-    return `<div class="wrap page"><div class="page-h"><div><h1>Eventos en el mapa</h1><p class="lead">Mostramos ${esc(CV.db.ciudad)}. Si lo permites, centramos el mapa en tu ubicación.</p></div><button class="btn ghost" data-act="locate2">${icon('nav', 16)}Usar mi ubicación</button></div>
-      <div class="card filters"><label class="f">Ciudad<select data-change="city">${ciudadOpts(CV.db.ciudad)}</select></label>
+    return `<div class="wrap page"><div class="page-h"><div><h1>Eventos en el mapa</h1><p class="lead">Mostramos ${esc(CV.zonaNombre())}. Si lo permites, centramos el mapa en tu ubicación.</p></div><button class="btn ghost" data-act="locate2">${icon('nav', 16)}Usar mi ubicación</button></div>
+      <div class="card filters"><label class="f">Ubicación<select data-change="city">${ciudadOpts(CV.db.zona)}</select></label>
         <label class="f">Desde<input type="date" min="${CV.todayKey()}" data-change="mdesde"></label><label class="f">Hasta<input type="date" min="${CV.todayKey()}" data-change="mhasta"></label>
         <div class="chips full" id="mchips" role="group" aria-label="Categorías">${CV.db.categorias.map((c) => `<button type="button" class="chip cat ${CV.mf.cats.includes(c.id) ? 'on' : ''}" style="--c:${c.color}" data-act="mapCat" data-id="${c.id}" aria-pressed="${CV.mf.cats.includes(c.id)}">${icon(c.icono, 14)}${esc(c.nombre)}</button>`).join('')}</div></div>
       <div class="mapgrid"><div id="map-main" class="map tall" aria-label="Mapa de eventos"></div><div class="card rows scroll" id="map-list"></div></div></div>`;
   };
 
   /* ======================= CATEGORÍAS (HU-17) ======================= */
-  CV.views.categorias = () => `<div class="wrap page"><div class="page-h"><div><h1>Categorías culturales</h1><p class="lead">Eventos vigentes en ${esc(CV.db.ciudad)}.</p></div></div>
-    <div class="grid3 catgrid">${CV.db.categorias.map((c) => { const n = CV.buscar({ ciudad: CV.db.ciudad, cats: [c.id] }).length;
+  CV.views.categorias = () => `<div class="wrap page"><div class="page-h"><div><h1>Categorías culturales</h1><p class="lead">Eventos vigentes en ${esc(CV.zonaNombre())}.</p></div></div>
+    <div class="grid3 catgrid">${CV.db.categorias.map((c) => { const n = CV.buscar({ zona: CV.db.zona, cats: [c.id] }).length;
       return `<a class="card catcard" href="#/eventos?cat=${c.id}" style="--c:${c.color}"><span class="cc-i">${icon(c.icono, 26)}</span><span><b>${esc(c.nombre)}</b><small>${n === 0 ? 'Sin eventos por ahora' : n + (n === 1 ? ' evento' : ' eventos')}</small></span>${icon('right', 18)}</a>`; }).join('')}</div></div>`;
 
   /* ======================= FAVORITOS ======================= */
@@ -355,7 +353,7 @@
   };
 
   /* ======================= NOSOTROS ======================= */
-  CV.views.nosotros = () => `<div class="wrap page narrow"><div class="page-h"><div><h1>Nosotros</h1><p class="lead">CulturaViva reúne la agenda cultural de las ciudades en un solo lugar.</p></div></div>
+  CV.views.nosotros = () => `<div class="wrap page narrow"><div class="page-h"><div><h1>Nosotros</h1><p class="lead">CulturaViva reúne la agenda cultural de la ciudad en un solo lugar.</p></div></div>
     <section class="card pad-l"><h2>Qué hacemos</h2><p class="desc">Ayudamos a que el público encuentre conciertos, exposiciones, obras de teatro, cine, talleres y festivales cerca de donde vive, y a que organizadores y espacios culturales den a conocer su programación.</p>
       <p class="desc">Puedes buscar sin crear una cuenta. Con una cuenta guardas favoritos, activas recordatorios y recibes avisos si un evento cambia.</p></section>
     <section class="card pad-l"><h2>Contacto</h2><ul class="info"><li>${icon('mail', 18)}<span><small>Correo</small><b>hola@culturaviva.example</b></span></li><li>${icon('phone', 18)}<span><small>Teléfono</small><b>+57 601 555 0100</b></span></li></ul></section>

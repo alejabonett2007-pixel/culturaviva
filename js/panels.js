@@ -35,10 +35,10 @@
       ${mios.length ? tablaEventos(mios, false) : CV.vacio('Aún no has publicado eventos', 'Publica tu primer evento para que aparezca en la agenda.', '<a class="btn" href="#/organizador/nuevo">Publicar evento</a>')}</div>`;
   };
 
-  const tablaEventos = (list, admin) => `<div class="card tbl-w"><table class="tbl"><thead><tr><th>Evento</th>${admin ? '<th>Organizador</th>' : ''}<th>Fecha</th><th>${admin ? 'Ciudad' : 'Lugar'}</th><th>Cupos</th><th>Estado</th>${admin ? '<th>Destacado</th>' : ''}<th><span class="sr">Acciones</span></th></tr></thead><tbody>
+  const tablaEventos = (list, admin) => `<div class="card tbl-w"><table class="tbl"><thead><tr><th>Evento</th>${admin ? '<th>Organizador</th>' : ''}<th>Fecha</th><th>${admin ? 'Localidad' : 'Lugar'}</th><th>Cupos</th><th>Estado</th>${admin ? '<th>Destacado</th>' : ''}<th><span class="sr">Acciones</span></th></tr></thead><tbody>
     ${list.map((e) => { const l = CV.lugar(e.lugarId); const org = CV.usuario(e.organizadorId); const base = admin ? '#/admin' : '#/organizador';
       return `<tr><td><a class="tl" href="#/evento/${e.id}"><b>${esc(e.titulo)}</b></a>${CV.tag(e)}</td>${admin ? `<td>${esc(org ? org.nombre : '—')}</td>` : ''}
-      <td>${CV.fmtDate(e.inicio)}<br><small>${CV.fmtTime(e.inicio)}</small></td><td>${admin ? esc(e.ciudad) : esc(l ? l.nombre : '')}</td><td>${cuposCell(e)}</td><td>${estadoPill(e)}</td>
+      <td>${CV.fmtDate(e.inicio)}<br><small>${CV.fmtTime(e.inicio)}</small></td><td>${admin ? esc(e.zona || e.ciudad) : esc(l ? l.nombre : '')}</td><td>${cuposCell(e)}</td><td>${estadoPill(e)}</td>
       ${admin ? `<td><label class="sw tiny"><input type="checkbox" data-change="destacar" data-id="${e.id}" ${e.destacado ? 'checked' : ''} aria-label="Destacar ${esc(e.titulo)}"></label></td>` : ''}
       <td class="acts"><a class="ib" href="${base}/editar/${e.id}" aria-label="Editar ${esc(e.titulo)}" title="Editar">${icon('edit', 16)}</a>
         ${e.estado === 'cancelado' ? `<button class="ib" data-act="reactivar" data-id="${e.id}" title="Reactivar" aria-label="Reactivar">${icon('check', 16)}</button>` : `<button class="ib" data-act="cancelar" data-id="${e.id}" title="Cancelar evento" aria-label="Cancelar evento">${icon('x', 16)}</button>`}
@@ -55,7 +55,9 @@
     const fechaFin = e.fin ? e.fin.slice(0, 10) : '', horaFin = e.fin ? e.fin.slice(11, 16) : '';
     const hoy = CV.todayKey();
     const f = (name, label, input, o = {}) => `<label class="ff ${o.cls || ''}"><span>${label}${o.req ? ' <i class="req" title="Obligatorio">*</i>' : ''}</span>${input}${o.hint ? `<small>${o.hint}</small>` : ''}<span class="err" data-err="${name}" role="alert"></span></label>`;
-    const lugares = Object.keys(CV.ciudades).map((c) => `<optgroup label="${c}">${CV.db.lugares.filter((l) => l.ciudad === c).map((l) => `<option value="${l.id}" ${l.id === e.lugarId ? 'selected' : ''}>${esc(l.nombre)}</option>`).join('')}</optgroup>`).join('');
+    const opcion = (l) => `<option value="${l.id}" ${l.id === e.lugarId ? 'selected' : ''}>${esc(l.nombre)}</option>`;
+    const zonasUsadas = [...Object.keys(CV.zonas), ''].filter((z) => CV.db.lugares.some((l) => (l.zona || '') === z));
+    const lugares = zonasUsadas.map((z) => `<optgroup label="${z || 'Otras ubicaciones'}">${CV.db.lugares.filter((l) => (l.zona || '') === z).map(opcion).join('')}</optgroup>`).join('');
     const l0 = CV.lugar(e.lugarId);
     CV.after.push(() => { CV.eventForm.prev = prev; syncTaller(); });
     return `<div class="wrap page narrow"><a class="back dark" href="${back}">${icon('left', 16)} Volver</a>
@@ -64,7 +66,7 @@
         ${f('titulo', 'Título', `<input name="titulo" value="${esc(e.titulo)}" maxlength="120">`, { req: 1, cls: 'w2' })}
         ${f('categoria', 'Categoría', `<select name="categoria" data-change="formCat"><option value="">Elige una categoría</option>${CV.db.categorias.map((c) => `<option value="${c.id}" ${c.id === e.categoria ? 'selected' : ''}>${esc(c.nombre)}</option>`).join('')}</select>`, { req: 1 })}
         ${f('lugarId', 'Lugar', `<select name="lugarId" data-change="formLugar"><option value="">Elige un lugar</option>${lugares}</select>`, { req: 1 })}
-        ${f('ciudad', 'Ciudad', `<input id="f-ciudad" value="${esc(l0 ? l0.ciudad : '')}" readonly placeholder="Se completa con el lugar">`)}
+        ${f('ciudad', 'Localidad', `<input id="f-ciudad" value="${esc(l0 ? (l0.zona || l0.ciudad) : '')}" readonly placeholder="Se completa con el lugar">`)}
         ${f('invitado', 'Artista, compañía o invitado', `<input name="invitado" value="${esc(e.invitado)}">`)}
         ${f('fecha', 'Fecha', `<input type="date" name="fecha" value="${fecha}" min="${prev && fecha < hoy ? fecha : hoy}">`, { req: 1 })}
         ${f('hora', 'Hora de inicio', `<input type="time" name="hora" value="${hora}">`, { req: 1 })}
@@ -86,7 +88,7 @@
     if (sel && box) box.hidden = sel.value !== 'talleres';
   };
   CV.changes.formCat = syncTaller;
-  CV.changes.formLugar = (el) => { const l = CV.lugar(el.value); document.getElementById('f-ciudad').value = l ? l.ciudad : ''; };
+  CV.changes.formLugar = (el) => { const l = CV.lugar(el.value); document.getElementById('f-ciudad').value = l ? (l.zona || l.ciudad) : ''; };
   CV.changes.formImg = (el) => {
     const file = el.files && el.files[0];
     if (!file) return;
@@ -170,8 +172,8 @@
           <td class="acts"><button class="ib" data-act="catForm" data-id="${c.id}" aria-label="Editar ${esc(c.nombre)}">${icon('edit', 16)}</button><button class="ib danger" data-act="catDel" data-id="${c.id}" aria-label="Eliminar ${esc(c.nombre)}">${icon('trash', 16)}</button></td></tr>`).join('')}</tbody></table></div>`;
     } else {
       body = `<div class="page-h in"><p class="lead">El directorio de espacios culturales que se muestra en Lugares y en el mapa.</p><button class="btn sm" data-act="lugForm">${icon('plus', 15)}Nuevo lugar</button></div>
-        <div class="card tbl-w"><table class="tbl"><thead><tr><th>Lugar</th><th>Tipo</th><th>Ciudad</th><th>Dirección</th><th>Eventos</th><th><span class="sr">Acciones</span></th></tr></thead><tbody>
-        ${CV.db.lugares.map((l) => `<tr><td><a class="tl" href="#/lugar/${l.id}"><b>${esc(l.nombre)}</b></a></td><td>${esc(l.tipo)}</td><td>${esc(l.ciudad)}</td><td>${l.direccion ? esc(l.direccion) : '<span class="warn">Sin dirección</span>'}</td><td>${CV.db.eventos.filter((e) => e.lugarId === l.id).length}</td>
+        <div class="card tbl-w"><table class="tbl"><thead><tr><th>Lugar</th><th>Tipo</th><th>Localidad</th><th>Dirección</th><th>Eventos</th><th><span class="sr">Acciones</span></th></tr></thead><tbody>
+        ${CV.db.lugares.map((l) => `<tr><td><a class="tl" href="#/lugar/${l.id}"><b>${esc(l.nombre)}</b></a></td><td>${esc(l.tipo)}</td><td>${esc(l.zona || '—')}</td><td>${l.direccion ? esc(l.direccion) : '<span class="warn">Sin dirección</span>'}</td><td>${CV.db.eventos.filter((e) => e.lugarId === l.id).length}</td>
           <td class="acts"><button class="ib" data-act="lugForm" data-id="${l.id}" aria-label="Editar ${esc(l.nombre)}">${icon('edit', 16)}</button><button class="ib danger" data-act="lugDel" data-id="${l.id}" aria-label="Eliminar ${esc(l.nombre)}">${icon('trash', 16)}</button></td></tr>`).join('')}</tbody></table></div>`;
     }
     return `<div class="wrap page"><div class="page-h"><div><h1>Administración</h1><p class="lead">Mantén ordenada la información cultural de la plataforma.</p></div></div>${tabs}${body}</div>`;
@@ -218,12 +220,12 @@
 
   /* ---------- lugares ---------- */
   CV.acts.lugForm = (t) => {
-    const l = t.dataset.id ? CV.lugar(t.dataset.id) : { nombre: '', tipo: 'Centro cultural', ciudad: CV.db.ciudad, barrio: '', direccion: '', lat: CV.centroCiudad()[0], lng: CV.centroCiudad()[1], descripcion: '', horario: '', telefono: '', web: '', email: '' };
+    const l = t.dataset.id ? CV.lugar(t.dataset.id) : { nombre: '', tipo: 'Centro cultural', ciudad: 'Bogotá', zona: CV.db.zona === 'todas' ? '' : CV.db.zona, barrio: '', direccion: '', lat: CV.centroCiudad()[0], lng: CV.centroCiudad()[1], descripcion: '', horario: '', telefono: '', web: '', email: '' };
     const inp = (n, label, o = {}) => `<label class="ff ${o.cls || ''}"><span>${label}${o.req ? ' <i class="req">*</i>' : ''}</span><input name="${n}" value="${esc(l[n])}" ${o.type ? `type="${o.type}"` : ''} ${o.step ? `step="${o.step}"` : ''}><span class="err" data-err="${n}" role="alert"></span></label>`;
     CV.modal(`<form class="dlg-b form eform" data-submit="lugSave" data-id="${t.dataset.id || ''}" novalidate><h2 class="w2">${t.dataset.id ? 'Editar lugar' : 'Nuevo lugar'}</h2>
       ${inp('nombre', 'Nombre', { req: 1, cls: 'w2' })}
       <label class="ff"><span>Tipo</span><select name="tipo">${CV.tiposLugar.map((x) => `<option ${x === l.tipo ? 'selected' : ''}>${x}</option>`).join('')}</select></label>
-      <label class="ff"><span>Ciudad</span><select name="ciudad">${Object.keys(CV.ciudades).map((x) => `<option ${x === l.ciudad ? 'selected' : ''}>${x}</option>`).join('')}</select></label>
+      <label class="ff"><span>Localidad en Bogotá</span><select name="zona"><option value="">Sin localidad</option>${Object.keys(CV.zonas).map((x) => `<option ${x === l.zona ? 'selected' : ''}>${x}</option>`).join('')}</select></label>
       ${inp('direccion', 'Dirección')}${inp('barrio', 'Barrio')}
       ${inp('lat', 'Latitud', { type: 'number', step: 'any', req: 1 })}${inp('lng', 'Longitud', { type: 'number', step: 'any', req: 1 })}
       <label class="ff w2"><span>Descripción</span><textarea name="descripcion" rows="3">${esc(l.descripcion)}</textarea></label>
@@ -240,9 +242,10 @@
     if (Number.isNaN(lat) || lat < -90 || lat > 90) { err('lat', 'Escribe una latitud válida.'); bad = true; }
     if (Number.isNaN(lng) || lng < -180 || lng > 180) { err('lng', 'Escribe una longitud válida.'); bad = true; }
     if (bad) return;
-    const data = { nombre: v('nombre'), tipo: v('tipo'), ciudad: v('ciudad'), barrio: v('barrio'), direccion: v('direccion'), lat, lng, descripcion: v('descripcion'), horario: v('horario'), telefono: v('telefono'), web: v('web'), email: v('email') };
-    if (id) { Object.assign(CV.lugar(id), data); CV.db.eventos.filter((e) => e.lugarId === id).forEach((e) => (e.ciudad = data.ciudad)); }
+    const data = { nombre: v('nombre'), tipo: v('tipo'), ciudad: 'Bogotá', zona: v('zona') || CV.zonaDe(v('barrio')), barrio: v('barrio'), direccion: v('direccion'), lat, lng, descripcion: v('descripcion'), horario: v('horario'), telefono: v('telefono'), web: v('web'), email: v('email') };
+    if (id) { Object.assign(CV.lugar(id), data); CV.db.eventos.filter((e) => e.lugarId === id).forEach((e) => { e.ciudad = data.ciudad; e.zona = data.zona; }); }
     else CV.db.lugares.push({ id: CV.uid('l'), ...data });
+    CV.normalizar();
     CV.save(); CV.toast(id ? 'Lugar actualizado' : 'Lugar creado'); refrescar();
   };
   CV.acts.lugDel = (t) => {

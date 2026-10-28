@@ -164,8 +164,8 @@
   };
   CV.changes.hasta = (el) => { CV.f.hasta = fechaValida(el) ? el.value : ''; CV.f.page = 1; CV.pintarResultados(); };
 
-  CV.changes.city = (el) => { CV.db.ciudad = el.value; CV.save(); CV.render(true); };
-  CV.acts.setCity = (t) => { CV.db.ciudad = t.dataset.c; CV.save(); CV.render(true); };
+  CV.changes.city = (el) => { CV.db.zona = el.value; CV.save(); CV.render(true); };
+  CV.acts.setCity = (t) => { CV.db.zona = t.dataset.c; CV.save(); CV.render(true); };
   CV.acts.focusSearch = (t, e) => {
     if ((CV.route.parts[0] || '') === 'eventos') { e.preventDefault(); const q = document.getElementById('f-q'); if (q) q.focus(); } else CV.focusQ = true;
   };
@@ -177,7 +177,7 @@
 
   /* ---------- lugares y mapa ---------- */
   CV.changes.ltipo = (el) => { CV.lf.tipo = el.value; CV.pintarLugares(); };
-  CV.changes.lciudad = (el) => { CV.lf.ciudad = el.value; CV.pintarLugares(); };
+  CV.changes.lciudad = (el) => { CV.lf.zona = el.value; CV.pintarLugares(); };
   CV.acts.vista = (t) => {
     CV.lf.vista = t.dataset.v;
     document.querySelectorAll('.seg button').forEach((b) => b.classList.toggle('on', b === t));
