@@ -6,22 +6,6 @@
     'Bogotá': [4.711, -74.0721],
   };
 
-  // Localidades de Bogotá (centro aproximado de cada una, para centrar el mapa)
-  CV.zonas = {
-    'La Candelaria': [4.5981, -74.076],
-    'Santa Fe': [4.6118, -74.069],
-    'Teusaquillo': [4.64, -74.085],
-    'Chapinero': [4.65, -74.062],
-    'Usaquén': [4.697, -74.03],
-    'Suba': [4.741, -74.083],
-    'Engativá': [4.7, -74.11],
-    'Fontibón': [4.674, -74.143],
-    'Puente Aranda': [4.618, -74.11],
-    'Kennedy': [4.628, -74.152],
-  };
-  const ZONA_DE_BARRIO = { 'La Candelaria': 'La Candelaria', 'La Merced': 'Santa Fe', 'Santa Fe': 'Santa Fe', Teusaquillo: 'Teusaquillo', Ferias: 'Teusaquillo', Salitre: 'Teusaquillo', 'Chicó': 'Chapinero' };
-  CV.zonaDe = (barrio) => ZONA_DE_BARRIO[barrio] || '';
-
   CV.tiposLugar = ['Museo', 'Teatro', 'Centro cultural', 'Galería', 'Biblioteca', 'Parque y plaza'];
 
   CV.seed = function () {
@@ -45,7 +29,7 @@
     ];
 
     const L = (id, nombre, tipo, ciudad, barrio, direccion, lat, lng, descripcion, horario, telefono, web, email) => ({
-      id, nombre, tipo, ciudad, barrio, zona: CV.zonaDe(barrio), direccion, lat, lng, descripcion, horario, telefono, web, email,
+      id, nombre, tipo, ciudad, barrio, direccion, lat, lng, descripcion, horario, telefono, web, email,
     });
     const lugares = [
       L('l1', 'Teatro Colón', 'Teatro', 'Bogotá', 'La Candelaria', 'Calle 10 # 5-32', 4.5964, -74.0748,
@@ -142,7 +126,7 @@
         descripcion: 'Obras de Chopin y Debussy. Esta función fue cancelada por el artista.' }),
       E({ titulo: 'Cuentería para niños', categoria: 'literatura', inicio: D(-5, 16), fin: D(-5, 17), lugarId: 'l10', invitado: 'Cuenteros de la biblioteca', organizadorId: 'u4',
         descripcion: 'Historias de la tradición oral colombiana para toda la familia.' }),
-].map((e) => ({ ...e, ciudad: lug(e.lugarId).ciudad, zona: lug(e.lugarId).zona }));
+].map((e) => ({ ...e, ciudad: lug(e.lugarId).ciudad }));
 
     const u1 = 'u1';
     const e2 = eventos[1].id, e5 = eventos[4].id, e9 = eventos[8].id;
@@ -161,7 +145,7 @@
       inscr: { [u1]: [] },
       sent: {},
       sesion: null,
-      zona: 'todas',
+      ciudad: 'Bogotá',
     };
   };
 })();
