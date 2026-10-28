@@ -20,6 +20,32 @@
     CV.db = CV.seed();
     CV.save();
   };
+  /* Localidades de Bogotá (se definen aquí para que funcionen aunque data.js sea una versión anterior). */
+  CV.zonas = CV.zonas || {
+    'Antonio Nariño': [4.59, -74.1],
+    'Barrios Unidos': [4.67, -74.08],
+    'Bosa': [4.62, -74.19],
+    'Chapinero': [4.65, -74.062],
+    'Ciudad Bolívar': [4.54, -74.155],
+    'Engativá': [4.7, -74.11],
+    'Fontibón': [4.674, -74.143],
+    'Kennedy': [4.628, -74.152],
+    'La Candelaria': [4.5981, -74.076],
+    'Los Mártires': [4.605, -74.09],
+    'Puente Aranda': [4.618, -74.11],
+    'Rafael Uribe Uribe': [4.57, -74.115],
+    'San Cristóbal': [4.56, -74.085],
+    'Santa Fe': [4.6118, -74.069],
+    'Suba': [4.741, -74.083],
+    'Sumapaz': [4.2, -74.25],
+    'Teusaquillo': [4.64, -74.085],
+    'Tunjuelito': [4.575, -74.13],
+    'Usaquén': [4.697, -74.03],
+    'Usme': [4.48, -74.125],
+  };
+  const ZONA_DE_BARRIO = { 'La Candelaria': 'La Candelaria', 'La Merced': 'Santa Fe', 'Santa Fe': 'Santa Fe', Teusaquillo: 'Teusaquillo', Ferias: 'Teusaquillo', Salitre: 'Teusaquillo', 'Chicó': 'Chapinero' };
+  CV.zonaDe = CV.zonaDe || ((barrio) => ZONA_DE_BARRIO[barrio] || '');
+
   CV.db = CV.load() || CV.seed();
 
   // Las cuentas de ejemplo siempre se leen de data.js: si cambias nombre, correo, clave o rol allí,
@@ -45,9 +71,14 @@
   CV.normalizar = () => {
     const db = CV.db;
     if (!db.zona || (db.zona !== 'todas' && !CV.zonas[db.zona])) db.zona = 'todas';
+    // Íconos nuevos de las categorías (reemplazan a los anteriores aunque la base guarde los viejos)
+    const NUEVO = { teatro: 'masks', arte: 'palette', cine: 'clapper', museos: 'museum', danza: 'dancer', festivales: 'fireworks' };
+    const VIEJO = ['smile', 'image', 'film', 'landmark', 'activity', 'sun'];
+    db.categorias.forEach((c) => { if (NUEVO[c.id] && VIEJO.includes(c.icono)) c.icono = NUEVO[c.id]; });
     db.lugares.forEach((l) => { if (!l.zona) l.zona = CV.zonaDe(l.barrio); });
     db.eventos.forEach((e) => { const l = CV.lugar(e.lugarId); e.zona = l ? l.zona : ''; });
   };
+  CV.db.zona = 'todas'; // al abrir o recargar la página siempre se empieza en Bogotá completa
   CV.normalizar();
   CV.zonaNombre = () => (CV.db.zona === 'todas' ? 'Bogotá' : CV.db.zona);
   CV.centroZona = () => CV.zonas[CV.db.zona] || CV.ciudades['Bogotá'];

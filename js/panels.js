@@ -199,7 +199,7 @@
     CV.modal(`<form class="dlg-b form" data-submit="catSave" data-id="${t.dataset.id || ''}" novalidate><h2>${t.dataset.id ? 'Editar categoría' : 'Nueva categoría'}</h2>
       <label class="ff"><span>Nombre <i class="req">*</i></span><input name="nombre" value="${esc(c.nombre)}" maxlength="30"><span class="err" data-err="nombre" role="alert"></span></label>
       <div class="two-f"><label class="ff"><span>Color</span><input type="color" name="color" value="${c.color}"></label>
-      <label class="ff"><span>Ícono</span><select name="icono">${['music', 'smile', 'image', 'book', 'film', 'landmark', 'activity', 'sun', 'tool', 'star', 'heart', 'users', 'ticket', 'grid'].map((i) => `<option value="${i}" ${i === c.icono ? 'selected' : ''}>${i}</option>`).join('')}</select></label></div>
+      <label class="ff"><span>Ícono</span><select name="icono">${['music', 'masks', 'palette', 'book', 'clapper', 'museum', 'dancer', 'fireworks', 'smile', 'image', 'film', 'landmark', 'activity', 'sun', 'tool', 'star', 'heart', 'users', 'ticket', 'grid'].map((i) => `<option value="${i}" ${i === c.icono ? 'selected' : ''}>${i}</option>`).join('')}</select></label></div>
       <div class="form-f"><button type="button" class="btn ghost" data-act="closeModal">Cancelar</button><button class="btn" type="submit">Guardar categoría</button></div></form>`, { label: 'Categoría' });
   };
   CV.submits.catSave = (form) => {

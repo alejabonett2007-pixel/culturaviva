@@ -21,7 +21,7 @@
 
   const otrasCiudades = () =>
     ['todas', ...Object.keys(CV.zonas)].filter((c) => c !== CV.db.zona && (c === 'todas' || CV.buscar({ zona: c }).length))
-      .map((c) => `<button class="chip" data-act="setCity" data-c="${c}">${icon('pin', 13)}${c === 'todas' ? 'Toda Bogotá' : c}${c === 'todas' ? '' : ` <em>${CV.buscar({ zona: c }).length}</em>`}</button>`).join('');
+      .map((c) => `<button class="chip" data-act="setCity" data-c="${c}">${icon('pin', 13)}${c === 'todas' ? 'Bogotá' : c}${c === 'todas' ? '' : ` <em>${CV.buscar({ zona: c }).length}</em>`}</button>`).join('');
 
   /* ======================= INICIO ======================= */
   CV.crowd = () => {

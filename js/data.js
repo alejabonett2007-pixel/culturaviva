@@ -6,6 +6,7 @@
     'Bogotá': [4.711, -74.0721],
   };
 
+
   CV.tiposLugar = ['Museo', 'Teatro', 'Centro cultural', 'Galería', 'Biblioteca', 'Parque y plaza'];
 
   CV.seed = function () {
@@ -18,18 +19,18 @@
 
     const categorias = [
       { id: 'musica', nombre: 'Música', color: '#8b5cf6', icono: 'music' },
-      { id: 'teatro', nombre: 'Teatro', color: '#ef4444', icono: 'smile' },
-      { id: 'arte', nombre: 'Arte', color: '#f5a623', icono: 'image' },
+      { id: 'teatro', nombre: 'Teatro', color: '#ef4444', icono: 'masks' },
+      { id: 'arte', nombre: 'Arte', color: '#f5a623', icono: 'palette' },
       { id: 'literatura', nombre: 'Literatura', color: '#16a34a', icono: 'book' },
-      { id: 'cine', nombre: 'Cine', color: '#2563eb', icono: 'film' },
-      { id: 'museos', nombre: 'Museos', color: '#0e9aa7', icono: 'landmark' },
-      { id: 'danza', nombre: 'Danza', color: '#ec4899', icono: 'activity' },
-      { id: 'festivales', nombre: 'Festivales', color: '#7c5cff', icono: 'sun' },
+      { id: 'cine', nombre: 'Cine', color: '#2563eb', icono: 'clapper' },
+      { id: 'museos', nombre: 'Museos', color: '#0e9aa7', icono: 'museum' },
+      { id: 'danza', nombre: 'Danza', color: '#ec4899', icono: 'dancer' },
+      { id: 'festivales', nombre: 'Festivales', color: '#7c5cff', icono: 'fireworks' },
       { id: 'talleres', nombre: 'Talleres', color: '#64748b', icono: 'tool' },
     ];
 
     const L = (id, nombre, tipo, ciudad, barrio, direccion, lat, lng, descripcion, horario, telefono, web, email) => ({
-      id, nombre, tipo, ciudad, barrio, direccion, lat, lng, descripcion, horario, telefono, web, email,
+      id, nombre, tipo, ciudad, barrio, zona: CV.zonaDe(barrio), direccion, lat, lng, descripcion, horario, telefono, web, email,
     });
     const lugares = [
       L('l1', 'Teatro Colón', 'Teatro', 'Bogotá', 'La Candelaria', 'Calle 10 # 5-32', 4.5964, -74.0748,
@@ -126,7 +127,7 @@
         descripcion: 'Obras de Chopin y Debussy. Esta función fue cancelada por el artista.' }),
       E({ titulo: 'Cuentería para niños', categoria: 'literatura', inicio: D(-5, 16), fin: D(-5, 17), lugarId: 'l10', invitado: 'Cuenteros de la biblioteca', organizadorId: 'u4',
         descripcion: 'Historias de la tradición oral colombiana para toda la familia.' }),
-].map((e) => ({ ...e, ciudad: lug(e.lugarId).ciudad }));
+].map((e) => ({ ...e, ciudad: lug(e.lugarId).ciudad, zona: lug(e.lugarId).zona }));
 
     const u1 = 'u1';
     const e2 = eventos[1].id, e5 = eventos[4].id, e9 = eventos[8].id;
@@ -145,7 +146,7 @@
       inscr: { [u1]: [] },
       sent: {},
       sesion: null,
-      ciudad: 'Bogotá',
+      zona: 'todas',
     };
   };
 })();

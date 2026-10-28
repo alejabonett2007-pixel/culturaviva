@@ -11,7 +11,7 @@
   if (!lib || !cfg.url || !cfg.key) { api.ready = Promise.resolve(); return; }
 
   const sb = (api.sb = lib.createClient(cfg.url, cfg.key, { auth: { persistSession: true, autoRefreshToken: true } }));
-  const LS_SENT = 'culturaviva.sent', LS_ZONA = 'culturaviva.zona';
+  const LS_SENT = 'culturaviva.sent';
   const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
   const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* sin almacenamiento */ } };
   const must = (r) => { if (r.error) throw r.error; return r.data; };
@@ -100,7 +100,7 @@
     CV.db = {
       v: 1, categorias: must(cat), lugares: must(lug).map(fromLugar), eventos: must(eve).map(fromEvento),
       usuarios: must(per).map((p) => ({ id: p.id, nombre: p.nombre, rol: p.rol, correo: '', clave: '', prefs: {} })),
-      favs: {}, recs: {}, inscr: {}, notifs: [], sent, sesion: null, zona: lsGet(LS_ZONA) || 'todas',
+      favs: {}, recs: {}, inscr: {}, notifs: [], sent, sesion: null, zona: (CV.db && CV.db.zona) || 'todas',
     };
     CV.normalizar();
     const { data } = await sb.auth.getSession();
@@ -188,7 +188,6 @@
   let pendiente = false;
   CV.save = () => {
     lsSet(LS_SENT, j(CV.db.sent || {}));
-    lsSet(LS_ZONA, CV.db.zona || 'todas');
     if (!api.online || pendiente) return;
     pendiente = true;
     setTimeout(() => {

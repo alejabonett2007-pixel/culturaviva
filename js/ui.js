@@ -9,8 +9,23 @@
     ? `<div class="art ${cls}"><img class="bg" src="${src}" alt=""><img class="fg" src="${src}" alt=""></div>`
     : `<div class="art ${cls}"><img src="${src}" alt="" loading="lazy"></div>`;
 
+  // Fotos temáticas remotas como alternativa cuando el evento no trae imagen propia.
+  // Son ilustrativas y requieren conexión a internet.
+  const fotosCategoria = {
+    musica: 'photo-1501386761578-eac5c94b800a',
+    teatro: 'photo-1503095396549-807759245b35',
+    arte: 'photo-1577083552431-6e5fd01aa342',
+    literatura: 'photo-1507842217343-583bb7270b66',
+    cine: 'photo-1489599849927-2ee91cede3ba',
+    museos: 'photo-1561214115-f2f134cc4912',
+    danza: 'photo-1504609813442-a8924e83f76e',
+    festivales: 'photo-1459749411175-04bf5292ceea',
+    talleres: 'photo-1516321318423-f06f85e504b3'
+  };
   CV.art = (e, cls = '') => {
     if (e.imagen) return `<div class="art ${cls}"><img src="${esc(e.imagen)}" alt="" loading="lazy"></div>`;
+    const foto = fotosCategoria[e.categoria];
+    if (foto) return `<div class="art ${cls}"><img src="https://images.unsplash.com/${foto}?auto=format&fit=crop&w=1000&q=80" alt="Fotografía ilustrativa: ${esc(e.categoria || 'evento cultural')}" loading="lazy"></div>`;
     const escena = CV.escena(e.categoria, e.id, e);
     if (escena) return CV.escenaImg(escena, cls);
     const c = CV.cat(e.categoria) || { color: '#2f6bff', icono: 'grid' };
@@ -22,7 +37,7 @@
   CV.placeArt = (l, cls = '') => {
     const escena = CV.escenaLugar(l);
     if (escena) return CV.escenaImg(escena, cls);
-    const tipoIc = { Museo: 'landmark', Teatro: 'smile', 'Centro cultural': 'users', 'Galería': 'image', Biblioteca: 'book', 'Parque y plaza': 'sun' }[l.tipo] || 'pin';
+    const tipoIc = { Museo: 'museum', Teatro: 'masks', 'Centro cultural': 'users', 'Galería': 'palette', Biblioteca: 'book', 'Parque y plaza': 'sun' }[l.tipo] || 'pin';
     const h = CV.hash(l.id);
     return `<div class="art ${cls}" style="--c:#2f6bff;--x:${20 + (h % 60)}%;--y:${10 + ((h >> 2) % 40)}%" role="img" aria-label="${esc(l.tipo)}"><span class="art-ic">${icon(tipoIc, 64)}</span></div>`;
   };
@@ -121,7 +136,7 @@
   /* ---------- mapa (HU-13, HU-14) ---------- */
   CV.maps = [];
   CV.destroyMaps = () => { CV.maps.forEach((m) => { try { m.remove(); } catch (e) { /* ya no existe */ } }); CV.maps = []; };
-  CV.zonaOpts = (sel) => `<option value="todas" ${sel === 'todas' ? 'selected' : ''}>Toda Bogotá</option>` +
+  CV.zonaOpts = (sel) => `<option value="todas" ${sel === 'todas' ? 'selected' : ''}>Bogotá</option>` +
     Object.keys(CV.zonas).map((z) => `<option value="${z}" ${z === sel ? 'selected' : ''}>${z}</option>`).join('');
   CV.centroCiudad = () => CV.centroZona();
 

@@ -12,6 +12,12 @@
     right: '<polyline points="9 18 15 12 9 6"/>',
     left: '<polyline points="15 18 9 12 15 6"/>',
     down: '<polyline points="6 9 12 15 18 9"/>',
+    palette: '<path d="M12 2.6C6.6 2.6 2.4 6.5 2.4 11.4S6.6 20.8 11.6 20.8c1.1 0 1.8-.7 1.8-1.6 0-1-.7-1.5-.7-2.5 0-1.4 1.2-2.4 2.7-2.4H18c2.2 0 3.6-1.7 3.6-3.9C21.6 6.1 17.5 2.6 12 2.6ZM5.95 11.2a1.25 1.25 0 1 0 2.5 0a1.25 1.25 0 1 0 -2.5 0ZM8.35 7.2a1.25 1.25 0 1 0 2.5 0a1.25 1.25 0 1 0 -2.5 0ZM13.15 6.9a1.25 1.25 0 1 0 2.5 0a1.25 1.25 0 1 0 -2.5 0ZM16.35 10a1.25 1.25 0 1 0 2.5 0a1.25 1.25 0 1 0 -2.5 0Z" fill="currentColor" stroke="none" fill-rule="evenodd"/>',
+    clapper: '<rect x="3" y="10.5" width="18" height="10.5" rx="1.6"/><path d="M3.4 10.5 2.6 7.6c-.2-.8.3-1.6 1.1-1.8l14.7-3.9c.8-.2 1.6.3 1.8 1.1l.8 2.9z" transform="translate(0 1.2)"/><path d="m7.2 6.9 2.3 3.3M12.2 5.6l2.3 3.3M17.2 4.3l1.3 2" transform="translate(0 .4)"/>',
+    masks: '<mask id="m__ID__" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24"><rect width="24" height="24" fill="#fff"/><path d="M-5.5 -5.4C-2.6 -6.8 2.6 -6.8 5.5 -5.4V1.4C5.5 5 3 7 0 7S-5.5 5 -5.5 1.4Z" transform="translate(14.6 14.8) rotate(12)" fill="#000" stroke="#000" stroke-width="2.2" stroke-linejoin="round"/></mask><g mask="url(#m__ID__)"><path d="M-5.5 -5.4C-2.6 -6.8 2.6 -6.8 5.5 -5.4V1.4C5.5 5 3 7 0 7S-5.5 5 -5.5 1.4ZM-3.5 -2.4a1.35 1.35 0 1 0 2.7 0a1.35 1.35 0 1 0 -2.7 0ZM.8 -2.4a1.35 1.35 0 1 0 2.7 0a1.35 1.35 0 1 0 -2.7 0ZM-2.8 4.4Q0 1.6 2.8 4.4Q0 3.1 -2.8 4.4Z" transform="translate(8.6 8.9) rotate(-14)" fill="currentColor" stroke="none" fill-rule="evenodd"/></g><path d="M-5.5 -5.4C-2.6 -6.8 2.6 -6.8 5.5 -5.4V1.4C5.5 5 3 7 0 7S-5.5 5 -5.5 1.4ZM-3.5 -2.4a1.35 1.35 0 1 0 2.7 0a1.35 1.35 0 1 0 -2.7 0ZM.8 -2.4a1.35 1.35 0 1 0 2.7 0a1.35 1.35 0 1 0 -2.7 0ZM-2.8 2.1Q0 4.9 2.8 2.1Q0 3.4 -2.8 2.1Z" transform="translate(14.6 14.8) rotate(12)" fill="currentColor" stroke="none" fill-rule="evenodd"/>',
+    dancer: '<circle cx="13.5" cy="4.2" r="2.1"/><path d="M12.6 8.2 10.8 14"/><path d="M12.9 9.2 18.6 6.2"/><path d="M12.4 9.6 6.4 8.4"/><path d="M10.8 14l5.2 3.2-1 4.8"/><path d="M10.8 14 7 17.8l-.6 4"/>',
+    museum: '<path d="M2.8 9.2 12 3l9.2 6.2z"/><path d="M5.5 11.5v6M9.8 11.5v6M14.2 11.5v6M18.5 11.5v6"/><path d="M3.5 17.5h17"/><path d="M2.5 21h19"/>',
+    fireworks: '<path d="M9 2.2v2.9M9 12.9v2.9M2.2 9h2.9M12.9 9h2.9M4.2 4.2l2 2M13.8 4.2l-2 2M4.2 13.8l2-2M13.8 13.8l-2-2"/><circle cx="9" cy="9" r="1.1" fill="currentColor" stroke="none"/><path d="M18.2 14.4v1.6M18.2 20.4V22M14.4 18.2H16M20.4 18.2H22" stroke-width="1.8"/><path d="M19.5 4.5h.01M4.5 19.5h.01" stroke-width="3"/>',
     music: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
     film: '<rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/>',
     book: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
@@ -53,8 +59,9 @@
 
   CV.icons = I;
   CV.iconNames = Object.keys(I);
+  CV.iconSeq = 0; // los íconos con máscara necesitan un identificador único en cada uso
   CV.icon = (n, s = 18) =>
-    `<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n] || ''}</svg>`;
+    `<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${(I[n] || '').replace(/__ID__/g, () => 'ic' + (++CV.iconSeq))}</svg>`;
 
 
   CV.esc = (s) =>
